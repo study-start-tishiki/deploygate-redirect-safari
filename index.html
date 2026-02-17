@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeployGate - Safariで開く</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    p { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 24px; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      margin-bottom: 12px;
+    }
+    .btn-primary {
+      background: #007aff;
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #e9e9eb;
+      color: #333;
+    }
+    .btn:active { opacity: 0.7; }
+    .copied { color: #34c759; font-size: 13px; margin-top: 4px; display: none; }
+    .fallback {
+      font-size: 12px;
+      color: #999;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+    .error {
+      color: #ff3b30;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="icon">📲</div>
+    <h1>DeployGate</h1>
+    <p id="message">リダイレクト中...</p>
+  </div>
+
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var url = params.get('url');
+
+      if (!url) {
+        document.getElementById('message').innerHTML = '<span class="error">URLが指定されていません</span>';
+        return;
+      }
+
+      // Validate URL
+      try {
+        var parsed = new URL(url);
+        if (parsed.hostname.indexOf('deploygate.com') === -1) {
+          document.getElementById('message').innerHTML = '<span class="error">無効なURLです</span>';
+          return;
+        }
+      } catch (e) {
+        document.getElementById('message').innerHTML = '<span class="error">無効なURLです</span>';
+        return;
+      }
+
+      // Detect iOS in-app browser
+      var ua = navigator.userAgent;
+      var isIOS = /iPhone|iPad|iPod/.test(ua);
+      var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
+      var isInApp = isIOS && !isSafari;
+
+      if (!isIOS || !isInApp) {
+        // Not iOS in-app browser - redirect immediately
+        window.location.replace(url);
+        return;
+      }
+
+      // iOS in-app browser: show UI to open in Safari
+      var app = document.getElementById('app');
+      app.innerHTML =
+        '<div class="icon">📲</div>' +
+        '<h1>DeployGate</h1>' +
+        '<p>Discordのアプリ内ブラウザでは<br>インストールできません。<br>Safariで開いてください。</p>' +
+        '<a id="safari-link" href="' + url + '" target="_blank" class="btn btn-primary">Safariで開く</a>' +
+        '<button id="copy-btn" class="btn btn-secondary">リンクをコピー</button>' +
+        '<div id="copied-msg" class="copied">コピーしました！Safariに貼り付けてください</div>' +
+        '<div class="fallback">上のボタンで開けない場合は<br>「リンクをコピー」→ Safariに貼り付け</div>';
+
+      document.getElementById('copy-btn').addEventListener('click', function() {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function() {
+            document.getElementById('copied-msg').style.display = 'block';
+          });
+        } else {
+          // Fallback for older browsers
+          var textarea = document.createElement('textarea');
+          textarea.value = url;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          document.getElementById('copied-msg').style.display = 'block';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
