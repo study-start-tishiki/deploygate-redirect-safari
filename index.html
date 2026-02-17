@@ -108,9 +108,26 @@
         return;
       }
 
-      // Always show instruction UI
-      // Discord's WebView (SFSafariViewController/WKWebView) cannot be escaped programmatically.
-      // Even navigator.share() only opens the share sheet - user must manually choose Safari.
+      // Detect environment
+      var ua = navigator.userAgent;
+      var isIOS = /iPhone|iPad|iPod/.test(ua);
+
+      // Known in-app browser UAs (Discord, Facebook, LINE, Instagram, etc.)
+      var isKnownInApp = /Discord|FBAN|FBAV|Line\/|Instagram|Twitter|Snapchat/.test(ua);
+
+      // Generic iOS WebView: lacks "Safari/" in UA (WKWebView without custom config)
+      var isGenericWebView = isIOS && !/Safari\//.test(ua);
+
+      var isInAppBrowser = isKnownInApp || isGenericWebView;
+
+      if (!isInAppBrowser) {
+        // PC, real Safari, SFSafariViewController → redirect immediately
+        window.location.replace(url);
+        return;
+      }
+
+      // iOS in-app browser: show manual instruction UI
+      // WebView cannot be escaped programmatically.
       var hasShare = typeof navigator.share === 'function';
 
       app.innerHTML =
