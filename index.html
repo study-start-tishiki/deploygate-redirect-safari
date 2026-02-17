@@ -28,15 +28,14 @@
     .icon { font-size: 48px; margin-bottom: 16px; }
     h1 { font-size: 20px; margin-bottom: 12px; }
     .message {
-      font-size: 15px;
+      font-size: 16px;
       color: #555;
       line-height: 1.8;
-      margin-bottom: 8px;
     }
     .arrow-area {
       position: fixed;
       bottom: 56px;
-      right: 24px;
+      right: 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -98,13 +97,24 @@
         return;
       }
 
-      // Show instruction to open in Safari via browser icon
+      // If #open hash is present, this is the second visit (opened in Safari from compass icon).
+      // Redirect to DeployGate immediately.
+      if (window.location.hash === '#open') {
+        window.location.replace(url);
+        return;
+      }
+
+      // First visit (likely in-app browser): add #open to URL so that
+      // "Open in Safari" (compass icon) will carry the hash to Safari.
+      window.location.hash = '#open';
+
+      // Show instruction UI
       app.innerHTML =
         '<div class="icon">📲</div>' +
         '<h1>テストアプリのインストール</h1>' +
-        '<p class="message">右下のブラウザアイコンをタップして<br><strong>Safariで開いてください</strong></p>';
+        '<p class="message">Safariで開いてください</p>';
 
-      // Animated arrow pointing to bottom-right browser icon
+      // Animated arrow pointing to bottom-right compass icon
       var arrow = document.createElement('div');
       arrow.className = 'arrow-area';
       arrow.innerHTML =
