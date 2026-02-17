@@ -49,12 +49,25 @@
       color: #333;
     }
     .btn:active { opacity: 0.7; }
-    .copied { color: #34c759; font-size: 13px; margin-top: 4px; display: none; }
-    .fallback {
+    .copied { color: #34c759; font-size: 13px; margin-top: 8px; display: none; }
+    .steps {
+      background: #f0f4ff;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .steps p {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .steps p:last-child { margin-bottom: 0; }
+    .steps strong { color: #333; }
+    .divider {
       font-size: 12px;
       color: #999;
-      margin-top: 16px;
-      line-height: 1.5;
+      margin: 16px 0 12px;
     }
     .error {
       color: #ff3b30;
@@ -105,22 +118,35 @@
 
       // iOS in-app browser: show UI to open in Safari
       var app = document.getElementById('app');
+      var hasShare = navigator.share !== undefined;
+
       app.innerHTML =
         '<div class="icon">📲</div>' +
         '<h1>DeployGate</h1>' +
-        '<p>Discordのアプリ内ブラウザでは<br>インストールできません。<br>Safariで開いてください。</p>' +
-        '<a id="safari-link" href="' + url + '" target="_blank" class="btn btn-primary">Safariで開く</a>' +
-        '<button id="copy-btn" class="btn btn-secondary">リンクをコピー</button>' +
-        '<div id="copied-msg" class="copied">コピーしました！Safariに貼り付けてください</div>' +
-        '<div class="fallback">上のボタンで開けない場合は<br>「リンクをコピー」→ Safariに貼り付け</div>';
+        '<p>アプリ内ブラウザでは<br>インストールできません。</p>' +
+        '<div class="steps">' +
+          '<p><strong>方法1:</strong> 右下の「…」→<br>「ブラウザで開く」をタップ</p>' +
+        '</div>' +
+        (hasShare
+          ? '<button id="share-btn" class="btn btn-primary">共有してSafariで開く</button>'
+          : '') +
+        '<button id="copy-btn" class="btn ' + (hasShare ? 'btn-secondary' : 'btn-primary') + '">リンクをコピー</button>' +
+        '<div id="copied-msg" class="copied">コピーしました！Safariに貼り付けてください</div>';
 
+      // Share API (iOS share sheet -> Safari)
+      if (hasShare) {
+        document.getElementById('share-btn').addEventListener('click', function() {
+          navigator.share({ title: 'DeployGate', url: url }).catch(function() {});
+        });
+      }
+
+      // Copy to clipboard
       document.getElementById('copy-btn').addEventListener('click', function() {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(function() {
             document.getElementById('copied-msg').style.display = 'block';
           });
         } else {
-          // Fallback for older browsers
           var textarea = document.createElement('textarea');
           textarea.value = url;
           textarea.style.position = 'fixed';
