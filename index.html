@@ -26,49 +26,44 @@
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
     .icon { font-size: 48px; margin-bottom: 16px; }
-    h1 { font-size: 20px; margin-bottom: 8px; }
-    .subtitle { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 24px; }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      text-decoration: none;
-      cursor: pointer;
-      border: none;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-    .btn-primary { background: #007aff; color: #fff; }
-    .btn-secondary { background: #e9e9eb; color: #333; }
-    .btn:active { opacity: 0.7; }
-    .copied {
-      color: #34c759;
-      font-size: 13px;
-      margin-top: 4px;
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    .message {
+      font-size: 15px;
+      color: #555;
+      line-height: 1.8;
       margin-bottom: 8px;
-      display: none;
     }
-    .separator {
+    .arrow-area {
+      position: fixed;
+      bottom: 56px;
+      right: 24px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      margin: 20px 0 16px;
-      color: #999;
-      font-size: 12px;
     }
-    .separator::before, .separator::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #e0e0e0;
+    .arrow-label {
+      background: #ff3b30;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(255,59,48,0.4);
     }
-    .separator span { padding: 0 12px; }
-    .help-text {
-      font-size: 13px;
-      color: #888;
-      line-height: 1.6;
-      margin-bottom: 16px;
+    .arrow-down {
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 20px solid #ff3b30;
+      animation: bounce 1s ease-in-out infinite;
+      filter: drop-shadow(0 2px 4px rgba(255,59,48,0.4));
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(10px); }
     }
     .error { color: #ff3b30; font-size: 14px; }
   </style>
@@ -77,7 +72,7 @@
   <div class="container" id="app">
     <div class="icon">📲</div>
     <h1>DeployGate</h1>
-    <p id="message" class="subtitle">読み込み中...</p>
+    <p id="message" class="message">読み込み中...</p>
   </div>
 
   <script>
@@ -103,45 +98,19 @@
         return;
       }
 
-      // Landing page UI (no auto-redirect)
-      // Discord uses SFSafariViewController which has identical UA to real Safari,
-      // making detection impossible. Show explicit buttons instead.
+      // Show instruction to open in Safari via browser icon
       app.innerHTML =
         '<div class="icon">📲</div>' +
         '<h1>テストアプリのインストール</h1>' +
-        '<p class="subtitle">DeployGateからインストールします</p>' +
-        '<a href="' + url + '" class="btn btn-primary">インストールページを開く</a>' +
-        '<div class="separator"><span>開けない場合</span></div>' +
-        '<p class="help-text">Discordなどのアプリ内ブラウザでは<br>インストールできない場合があります。<br>その場合はリンクをコピーして<br>Safariで開いてください。</p>' +
-        '<button id="copy-btn" class="btn btn-secondary">リンクをコピー</button>' +
-        '<div id="copied-msg" class="copied">✓ コピーしました！Safariに貼り付けてください</div>';
+        '<p class="message">右下のブラウザアイコンをタップして<br><strong>Safariで開いてください</strong></p>';
 
-      // Copy to clipboard
-      document.getElementById('copy-btn').addEventListener('click', function() {
-        var msg = document.getElementById('copied-msg');
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url).then(function() {
-            msg.style.display = 'block';
-          }).catch(function() {
-            fallbackCopy();
-          });
-        } else {
-          fallbackCopy();
-        }
-
-        function fallbackCopy() {
-          var textarea = document.createElement('textarea');
-          textarea.value = url;
-          textarea.style.position = 'fixed';
-          textarea.style.opacity = '0';
-          document.body.appendChild(textarea);
-          textarea.focus();
-          textarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textarea);
-          msg.style.display = 'block';
-        }
-      });
+      // Animated arrow pointing to bottom-right browser icon
+      var arrow = document.createElement('div');
+      arrow.className = 'arrow-area';
+      arrow.innerHTML =
+        '<div class="arrow-label">ここをタップ！</div>' +
+        '<div class="arrow-down"></div>';
+      document.body.appendChild(arrow);
     })();
   </script>
 </body>
