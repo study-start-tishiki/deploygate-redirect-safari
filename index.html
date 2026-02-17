@@ -64,10 +64,13 @@
     }
     .steps p:last-child { margin-bottom: 0; }
     .steps strong { color: #333; }
-    .divider {
-      font-size: 12px;
-      color: #999;
-      margin: 16px 0 12px;
+    .fallback-link {
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    .fallback-link a {
+      color: #007aff;
+      text-decoration: underline;
     }
     .error {
       color: #ff3b30;
@@ -86,6 +89,7 @@
     (function() {
       var params = new URLSearchParams(window.location.search);
       var url = params.get('url');
+      var app = document.getElementById('app');
 
       if (!url) {
         document.getElementById('message').innerHTML = '<span class="error">URLが指定されていません</span>';
@@ -104,60 +108,59 @@
         return;
       }
 
-      // Detect iOS in-app browser
-      var ua = navigator.userAgent;
-      var isIOS = /iPhone|iPad|iPod/.test(ua);
-      var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
-      var isInApp = isIOS && !isSafari;
-
-      if (!isIOS || !isInApp) {
-        // Not iOS in-app browser - redirect immediately
-        window.location.replace(url);
-        return;
-      }
-
-      // iOS in-app browser: show UI to open in Safari
-      var app = document.getElementById('app');
-      var hasShare = navigator.share !== undefined;
+      // Always show instruction UI
+      // Discord's WebView (SFSafariViewController/WKWebView) cannot be escaped programmatically.
+      // Even navigator.share() only opens the share sheet - user must manually choose Safari.
+      var hasShare = typeof navigator.share === 'function';
 
       app.innerHTML =
         '<div class="icon">📲</div>' +
-        '<h1>DeployGate</h1>' +
-        '<p>アプリ内ブラウザでは<br>インストールできません。</p>' +
+        '<h1>アプリをインストール</h1>' +
+        '<p>Safariで開くとインストールできます</p>' +
         '<div class="steps">' +
-          '<p><strong>方法1:</strong> 右下の「…」→<br>「ブラウザで開く」をタップ</p>' +
+          '<p><strong>Step 1:</strong> 下の「リンクをコピー」をタップ</p>' +
+          '<p><strong>Step 2:</strong> Safariを開いてアドレスバーに貼り付け</p>' +
         '</div>' +
+        '<button id="copy-btn" class="btn btn-primary">リンクをコピー</button>' +
+        '<div id="copied-msg" class="copied">✓ コピーしました！Safariを開いて貼り付けてください</div>' +
         (hasShare
-          ? '<button id="share-btn" class="btn btn-primary">共有してSafariで開く</button>'
+          ? '<button id="share-btn" class="btn btn-secondary">共有メニューから開く</button>'
           : '') +
-        '<button id="copy-btn" class="btn ' + (hasShare ? 'btn-secondary' : 'btn-primary') + '">リンクをコピー</button>' +
-        '<div id="copied-msg" class="copied">コピーしました！Safariに貼り付けてください</div>';
-
-      // Share API (iOS share sheet -> Safari)
-      if (hasShare) {
-        document.getElementById('share-btn').addEventListener('click', function() {
-          navigator.share({ title: 'DeployGate', url: url }).catch(function() {});
-        });
-      }
+        '<div class="fallback-link"><a href="' + url + '">直接開く（Safari / PCの場合）</a></div>';
 
       // Copy to clipboard
       document.getElementById('copy-btn').addEventListener('click', function() {
+        var msg = document.getElementById('copied-msg');
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(function() {
-            document.getElementById('copied-msg').style.display = 'block';
+            msg.style.display = 'block';
+          }).catch(function() {
+            fallbackCopy();
           });
         } else {
+          fallbackCopy();
+        }
+
+        function fallbackCopy() {
           var textarea = document.createElement('textarea');
           textarea.value = url;
           textarea.style.position = 'fixed';
           textarea.style.opacity = '0';
           document.body.appendChild(textarea);
+          textarea.focus();
           textarea.select();
           document.execCommand('copy');
           document.body.removeChild(textarea);
-          document.getElementById('copied-msg').style.display = 'block';
+          msg.style.display = 'block';
         }
       });
+
+      // Share API
+      if (hasShare) {
+        document.getElementById('share-btn').addEventListener('click', function() {
+          navigator.share({ title: 'DeployGate', url: url }).catch(function() {});
+        });
+      }
     })();
   </script>
 </body>
