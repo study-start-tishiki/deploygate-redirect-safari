@@ -32,38 +32,6 @@
       color: #555;
       line-height: 1.8;
     }
-    .arrow-area {
-      position: fixed;
-      bottom: 56px;
-      right: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .arrow-label {
-      background: #ff3b30;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 20px;
-      margin-bottom: 8px;
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(255,59,48,0.4);
-    }
-    .arrow-down {
-      width: 0;
-      height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 20px solid #ff3b30;
-      animation: bounce 1s ease-in-out infinite;
-      filter: drop-shadow(0 2px 4px rgba(255,59,48,0.4));
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(10px); }
-    }
     .safari-btn {
       display: inline-block;
       background: #007aff;
@@ -78,12 +46,6 @@
       transition: background 0.2s;
     }
     .safari-btn:active { background: #005ec4; }
-    .fallback-msg {
-      font-size: 13px;
-      color: #999;
-      line-height: 1.6;
-      margin-top: 8px;
-    }
     .error { color: #ff3b30; font-size: 14px; }
   </style>
 </head>
@@ -147,18 +109,6 @@
       btn.textContent = 'Safari で開く';
       app.appendChild(btn);
 
-      var fallback = document.createElement('p');
-      fallback.className = 'fallback-msg';
-      fallback.innerHTML = 'ボタンが動作しない場合は<br>右下のアイコンからSafariで開いてください';
-      app.appendChild(fallback);
-
-      // Animated arrow pointing to bottom-right compass icon (fallback)
-      var arrow = document.createElement('div');
-      arrow.className = 'arrow-area';
-      arrow.innerHTML =
-        '<div class="arrow-label">ここをタップ！</div>' +
-        '<div class="arrow-down"></div>';
-      document.body.appendChild(arrow);
     })();
   </script>
 </body>
